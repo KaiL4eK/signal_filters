@@ -1,9 +1,11 @@
 #ifndef FILTERS_H_
 #define	FILTERS_H_
 
-#include "core.h"
+#include <math.h>
 
 // gyr - [degree/sec]
+
+extern float inv_sqrt ( float );
 
 typedef struct {
     float   acc_x,
@@ -28,6 +30,17 @@ typedef struct
     float pitch;
     float yaw;
 }euler_angles_t;
+
+void filter_initialize ( float sample_rate );
+void complementary_filter_set_angle_rate( float rate_a );
+void complementary_filter_position_execute( imu_filter_input_t *g_a, euler_angles_t *angles );
+
+void madgwick_filter_set_angle_rate( float beta );
+void madgwick_filter_position_execute ( imu_filter_input_t *g_a, euler_angles_t *angles );
+
+void lowpass_filter_set_velocity_rate( float rate_a );
+void lowpass_filter_velocity_execute ( imu_filter_input_t *g_a, euler_angles_t *velocity );
+
 
 #endif	/* FILTERS_H_ */
 
