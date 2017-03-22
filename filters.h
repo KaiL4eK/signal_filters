@@ -2,16 +2,16 @@
 #define	FILTERS_H_
 
 #include <math.h>
-
-// gyr - [degree/sec]
+#include <stdbool.h>
+#include <dsp.h>
 
 extern float inv_sqrt ( float );
 
 typedef struct {
-    float   acc_x,
+    float   acc_x,  // Degree
             acc_y,
             acc_z,
-            gyr_x,
+            gyr_x,  // Degree in second
             gyr_y,
             gyr_z;
 }imu_filter_input_t;
@@ -37,6 +37,8 @@ void complementary_filter_position_execute( imu_filter_input_t *g_a, euler_angle
 
 void madgwick_filter_set_angle_rate( float beta );
 void madgwick_filter_position_execute ( imu_filter_input_t *g_a, euler_angles_t *angles );
+void madgwick_filter_set_inv_sqrt_method_manual( bool manual );
+void madgwick_filter_reset_values( void );
 
 void lowpass_filter_set_velocity_rate( float rate_a );
 void lowpass_filter_velocity_execute ( imu_filter_input_t *g_a, euler_angles_t *velocity );

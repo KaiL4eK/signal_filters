@@ -17,9 +17,12 @@
 
 static float m_sample_rate                      = 0;
 
+float (*count_inv_sqrt)( float );
+
 void filter_initialize ( float sample_rate )
 {
     m_sample_rate = sample_rate;
+    count_inv_sqrt = inv_sqrt;
 }
 
 static float complementary_filter_angle_rate_a  = 0.95f;
@@ -78,7 +81,26 @@ void madgwick_filter_set_angle_rate( float beta_ )
     beta = beta_;
 }
 
+float inv_sqrt_manual( float x )
+{
+    return 1.0/sqrt( x );
+}
+
+void madgwick_filter_set_inv_sqrt_method_manual( bool manual )
+{
+    if ( manual )
+        count_inv_sqrt = inv_sqrt_manual;
+    else
+        count_inv_sqrt = inv_sqrt;
+}
+
 volatile float q0 = 1.0f, q1 = 0.0f, q2 = 0.0f, q3 = 0.0f;	// quaternion of sensor frame relative to auxiliary frame
+
+void madgwick_filter_reset_values( void )
+{
+    q0 = 1.0;
+    q1 = q2 = q3 = 0.0;
+}
 
 void madgwick_filter_position_execute ( imu_filter_input_t *g_a, euler_angles_t *angles )
 {
@@ -100,10 +122,10 @@ void madgwick_filter_position_execute ( imu_filter_input_t *g_a, euler_angles_t 
 	qDot4 = 0.5f * (q0 * gz + q1 * gy - q2 * gx);
 
 	// Compute feedback only if accelerometer measurement valid (avoids NaN in accelerometer normalisation)
-	if(!((g_a->acc_x == 0.0f) && (g_a->acc_y == 0.0f) && (g_a->acc_z == 0.0f))) {
-
+	if(!((g_a->acc_x == 0.0f) && (g_a->acc_y == 0.0f) && (g_a->acc_z == 0.0f))) 
+    {
 		// Normalise accelerometer measurement
-		recipNorm = inv_sqrt(g_a->acc_x * g_a->acc_x + g_a->acc_y * g_a->acc_y + g_a->acc_z * g_a->acc_z);
+		recipNorm = count_inv_sqrt(g_a->acc_x * g_a->acc_x + g_a->acc_y * g_a->acc_y + g_a->acc_z * g_a->acc_z);
 		float ax = g_a->acc_x * recipNorm;
 		float ay = g_a->acc_y * recipNorm;
 		float az = g_a->acc_z * recipNorm;   
@@ -128,7 +150,7 @@ void madgwick_filter_position_execute ( imu_filter_input_t *g_a, euler_angles_t 
 		s1 = _4q1 * q3q3 - _2q3 * ax + 4.0f * q0q0 * q1 - _2q0 * ay - _4q1 + _8q1 * q1q1 + _8q1 * q2q2 + _4q1 * az;
 		s2 = 4.0f * q0q0 * q2 + _2q0 * ax + _4q2 * q3q3 - _2q3 * ay - _4q2 + _8q2 * q1q1 + _8q2 * q2q2 + _4q2 * az;
 		s3 = 4.0f * q1q1 * q3 - _2q1 * ax + 4.0f * q2q2 * q3 - _2q2 * ay;
-		recipNorm = inv_sqrt(s0 * s0 + s1 * s1 + s2 * s2 + s3 * s3); // normalise step magnitude
+		recipNorm = count_inv_sqrt(s0 * s0 + s1 * s1 + s2 * s2 + s3 * s3); // normalise step magnitude
 		s0 *= recipNorm;
 		s1 *= recipNorm;
 		s2 *= recipNorm;
@@ -148,7 +170,7 @@ void madgwick_filter_position_execute ( imu_filter_input_t *g_a, euler_angles_t 
 	q3 += qDot4 * m_sample_rate;
 
 	// Normalise quaternion
-	recipNorm = inv_sqrt(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3);
+	recipNorm = count_inv_sqrt(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3);
 	q0 *= recipNorm;
 	q1 *= recipNorm;
 	q2 *= recipNorm;
