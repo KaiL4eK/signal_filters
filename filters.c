@@ -176,14 +176,14 @@ void madgwick_filter_position_execute ( imu_filter_input_t *g_a, euler_angles_t 
 	q2 *= recipNorm;
 	q3 *= recipNorm;
 
-	double sqw = q0 * q0;
-	double sqx = q1 * q1;
-	double sqy = q2 * q2;
-	double sqz = q3 * q3;
+	float sqw = q0 * q0;
+	float sqx = q1 * q1;
+	float sqy = q2 * q2;
+	float sqz = q3 * q3;
 	
-	double rotxrad = atan2(2.0 * ( q2 * q3 + q1 * q0 ) , ( -sqx - sqy + sqz + sqw ));
-	double rotyrad = asin(-2.0 * ( q1 * q3 - q2 * q0 ));
-	double rotzrad = atan2(2.0 * ( q1 * q2 + q3 * q0 ) , (  sqx - sqy - sqz + sqw ));
+	float rotxrad = atan2(2.0 * ( q2 * q3 + q1 * q0 ) , ( -sqx - sqy + sqz + sqw ));
+	float rotyrad = asin(-2.0 * ( q1 * q3 - q2 * q0 ));
+	float rotzrad = atan2(2.0 * ( q1 * q2 + q3 * q0 ) , (  sqx - sqy - sqz + sqw ));
 	
 	angles->pitch  = rotxrad * RADIANS_TO_DEGREES;
 	angles->roll   = rotyrad * RADIANS_TO_DEGREES;
