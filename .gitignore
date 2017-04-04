@@ -20,3 +20,5 @@
 **/nbproject/Makefile-*
 **/disassembly/
 *.map
+/nbproject/private/
+/dist/default/
