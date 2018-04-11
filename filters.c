@@ -13,9 +13,26 @@
     #define DEGREES_TO_RADIANS          0.017453293f
 #endif
 
+#include <stdint.h>
 #include "filters.h"
 
 static float m_sample_rate                      = 0;
+
+float inv_sqrt ( float x ) 
+{
+	float halfx = 0.5f * x;
+	float y = x;
+	int32_t i = *(int32_t*)&y;
+	i = 0x5f3759df - (i>>1);
+	y = *(float*)&i;
+	y = y * (1.5f - (halfx * y * y));
+	return y;
+}
+
+float inv_sqrt_manual( float x )
+{
+    return 1.0/sqrt( x );
+}
 
 float (*count_inv_sqrt)( float );
 
@@ -23,6 +40,8 @@ void filter_initialize ( float sample_rate )
 {
     m_sample_rate = sample_rate;
     count_inv_sqrt = inv_sqrt;
+
+    madgwick_filter_reset_values();
 }
 
 static float complementary_filter_angle_rate_a  = 0.95f;
@@ -79,11 +98,6 @@ float beta = 0.1f;
 void madgwick_filter_set_angle_rate( float beta_ )
 {
     beta = beta_;
-}
-
-float inv_sqrt_manual( float x )
-{
-    return 1.0/sqrt( x );
 }
 
 void madgwick_filter_set_inv_sqrt_method_manual( bool manual )
